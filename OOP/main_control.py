@@ -1,6 +1,8 @@
 import LedFade
 import LedRotar
+import math
 import pigpio
+import time
 from pigpio_encoder import pigpio_encoder
 
 mode = 0
@@ -31,6 +33,8 @@ def main():
   main_rotary.setup_switch(debounce=100,long_press=sw_long_callback,sw_long_callback=sw_long_callback)
   
   pi = pigpio.pi()
+  
+  fader()
 
   main_rotary.watch()
 
@@ -51,24 +55,37 @@ def rotary_callback(counter):
 
 def sw_long_callback():
   global mode, pi, running, main_rotary, rgb, curr_color, RED_PIN, GREEN_PIN, BLUE_PIN, color_keys, colors
+  print('main_control long press. current mode: {}, next mode: {}'.format(mode, (mode+1)%2))
+  mode = (mode+1)%2
+  if mode == 0:
+    # fader
+    running = True
+    #main_rotary.setup_switch(debounce=100,long_press=backup_sw_long_callback,backup_sw_long_callback=sw_long_callback)
+    fader()
+  else:
+    # rotor
+    running = False
+
+
+def backup_sw_long_callback():
+  global mode, pi, running, main_rotary, rgb, curr_color, RED_PIN, GREEN_PIN, BLUE_PIN, color_keys, colors
   print('main_control long press')
   mode = (mode+1)%2
   if mode == 0:
+    # fader
     running = True
     fader()
-    # fader
-    #curr = LedFade.LedFade(pi)
   else:
-    running = False
     # rotor
-    #curr = LedRotar.LedRotar(pi, main_rotary)
+    #main_rotary.setup_switch(debounce=100,long_press=sw_long_callback,sw_long_callback=sw_long_callback)
+    running = False
 
 def sw_short_callback():
   global mode, pi, main_rotary, rgb, curr_color, RED_PIN, GREEN_PIN, BLUE_PIN, color_keys, colors
   print('main_control short press')
   if mode == 0:
-    print('click in fader mode')
     # fader
+    print('click in fader mode')
   else:
     curr_color = (curr_color + 1)%3
     main_rotary.counter = rgb[curr_color]
@@ -76,6 +93,10 @@ def sw_short_callback():
 def fader():
   global mode, running, pi, main_rotary, rgb, curr_color, RED_PIN, GREEN_PIN, BLUE_PIN, color_keys, colors
   degrees = 1
+  mode = 0
+  r = 255
+  g = 0
+  b = 0
   while running:
     time.sleep(.12)
 
@@ -109,6 +130,8 @@ def fader():
     pi.set_PWM_dutycycle(BLUE_PIN, b)
 
     degrees = (degrees + 1)%360
+
+  rgb = (r,g,b)
 
 if __name__ == '__main__':
   main()
