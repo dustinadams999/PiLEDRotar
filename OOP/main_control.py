@@ -43,15 +43,16 @@ def main():
   main_rotary.watch()
 
 def rotary_callback(counter):
-  global mode, speed_factor, running, pi, main_rotary, rgb, curr_color, RED_PIN, GREEN_PIN, BLUE_PIN, color_keys, colors
+  global mode, curr_counter, speed_factor, running, pi, main_rotary, rgb, curr_color, RED_PIN, GREEN_PIN, BLUE_PIN, color_keys, colors
   if mode == 0:
     # fader
     # we can increase or decrease the fading speed here
-    if abs(counter - curr_counter) == 1:
-      speed_factor += (counter - curr_counter)
-    if counter == curr_counter or speed_factor < 0:
+    if abs(counter - curr_counter)//8 == 1:
+      speed_factor += (counter - curr_counter)//8
+    if counter == curr_counter or speed_factor < 0 or counter <= 0:
+      mode = (mode+1)%2
       running = False
-    print('rotary turn in fader mode. speed_factor: {}'.format(speed_factor))
+    print('rotary turn in fader mode. speed_factor: {}, curr_counter: {}, counter: {}, running: {}'.format(speed_factor, curr_counter, counter, running))
 
   else:
     # rotor
@@ -70,24 +71,9 @@ def sw_long_callback():
   if mode == 0:
     # fader
     running = True
-    #main_rotary.setup_switch(debounce=100,long_press=backup_sw_long_callback,backup_sw_long_callback=sw_long_callback)
     fader()
   else:
     # rotor
-    running = False
-
-
-def backup_sw_long_callback():
-  global mode, pi, running, main_rotary, rgb, curr_color, RED_PIN, GREEN_PIN, BLUE_PIN, color_keys, colors
-  print('main_control long press')
-  mode = (mode+1)%2
-  if mode == 0:
-    # fader
-    running = True
-    fader()
-  else:
-    # rotor
-    #main_rotary.setup_switch(debounce=100,long_press=sw_long_callback,sw_long_callback=sw_long_callback)
     running = False
 
 def sw_short_callback():
