@@ -13,6 +13,10 @@ rgb = (0,0,0)
 curr_color = 0
 running = True
 
+curr_counter = 0
+
+speed_factor=30
+
 RED_PIN=5
 GREEN_PIN=6
 BLUE_PIN=26
@@ -39,11 +43,15 @@ def main():
   main_rotary.watch()
 
 def rotary_callback(counter):
-  global mode, running, pi, main_rotary, rgb, curr_color, RED_PIN, GREEN_PIN, BLUE_PIN, color_keys, colors
+  global mode, speed_factor, running, pi, main_rotary, rgb, curr_color, RED_PIN, GREEN_PIN, BLUE_PIN, color_keys, colors
   if mode == 0:
     # fader
     # we can increase or decrease the fading speed here
-    print('rotary turn in fader mode')
+    if abs(counter - curr_counter) == 1:
+      speed_factor += (counter - curr_counter)
+    if counter == curr_counter or speed_factor < 0:
+      running = False
+    print('rotary turn in fader mode. speed_factor: {}'.format(speed_factor))
 
   else:
     # rotor
@@ -52,6 +60,8 @@ def rotary_callback(counter):
     pi.set_PWM_dutycycle(RED_PIN, rgb[0])
     pi.set_PWM_dutycycle(GREEN_PIN, rgb[1])
     pi.set_PWM_dutycycle(BLUE_PIN, rgb[2])
+
+  curr_counter = counter
 
 def sw_long_callback():
   global mode, pi, running, main_rotary, rgb, curr_color, RED_PIN, GREEN_PIN, BLUE_PIN, color_keys, colors
@@ -91,14 +101,14 @@ def sw_short_callback():
     main_rotary.counter = rgb[curr_color]
 
 def fader():
-  global mode, running, pi, main_rotary, rgb, curr_color, RED_PIN, GREEN_PIN, BLUE_PIN, color_keys, colors
+  global mode, speed_factor, running, pi, main_rotary, rgb, curr_color, RED_PIN, GREEN_PIN, BLUE_PIN, color_keys, colors
   degrees = 1
   mode = 0
   r = 255
   g = 0
   b = 0
   while running:
-    time.sleep(.12)
+    time.sleep(speed_factor/250)
 
     # at the beginning r = 255, g = 0, b = 0 (b is still, g is fast moving)
     if mode == 0:
