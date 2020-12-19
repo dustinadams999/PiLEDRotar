@@ -1,4 +1,3 @@
-from IPython import embed as shell
 import pigpio
 from pigpio_encoder import pigpio_encoder
 
