@@ -52,7 +52,7 @@ def rotary_callback(counter):
     if counter == curr_counter or speed_factor < 0 or counter <= 0:
       mode = (mode+1)%2
       running = False
-    print('rotary turn in fader mode. speed_factor: {}, curr_counter: {}, counter: {}, running: {}'.format(speed_factor, curr_counter, counter, running))
+    print('rotary turn in fader mode (0). speed_factor: {}, curr_counter: {}, counter: {}, running: {}'.format(speed_factor, curr_counter, counter, running))
 
   else:
     # rotor
@@ -61,6 +61,7 @@ def rotary_callback(counter):
     pi.set_PWM_dutycycle(RED_PIN, rgb[0])
     pi.set_PWM_dutycycle(GREEN_PIN, rgb[1])
     pi.set_PWM_dutycycle(BLUE_PIN, rgb[2])
+    print('rotary turn in rotary mode (1). r: {}, g: {}, b: {}'.format(rgb[0],rgb[1],rgb[2]))
 
   curr_counter = counter
 
@@ -69,10 +70,12 @@ def sw_long_callback():
   print('main_control long press. current mode: {}, next mode: {}'.format(mode, (mode+1)%2))
   mode = (mode+1)%2
   if mode == 0:
+    print('long click hold in fader mode (0)')
     # fader
     running = True
     fader()
   else:
+    print('long click hold in rotary mode (0)')
     # rotor
     running = False
 
@@ -81,8 +84,9 @@ def sw_short_callback():
   print('main_control short press')
   if mode == 0:
     # fader
-    print('click in fader mode')
+    print('click in fader mode (0)')
   else:
+    print('click in rotary mode (1)')
     curr_color = (curr_color + 1)%3
     main_rotary.counter = rgb[curr_color]
 
