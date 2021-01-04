@@ -30,6 +30,7 @@ class Rotary:
 	long = False
 
 	def __init__(self, clk=None, dt=None, sw=None):
+		print('WARNING: using altered pigpio_encoder library.')
 		if not clk or not dt:
 			raise BaseException("CLK and DT pin must be specified!")
 		self.clk = clk
@@ -38,6 +39,16 @@ class Rotary:
 		self.dt_input = pigpio.pi()
 		self.clk_input.set_glitch_filter(self.clk, self.debounce)
 		self.dt_input.set_glitch_filter(self.dt, self.debounce)
+
+		# piLED variables
+		self.fader_mode = True # fader or rotar
+		self.fader_phase = 0
+		self.fader_scale = 100
+		self.degrees = 1
+		self.r = 255
+		self.g = 0
+		self.b = 0
+
 		if sw is not None:
 			self.sw = sw
 			self.sw_input = pigpio.pi()
@@ -130,7 +141,45 @@ class Rotary:
 
 	def watch(self):
 		# self.callback = callback
+		fader_counter = 0
+		led_pi = pigpio.pi()
 		while True:
+			if self.fader_mode:
+				# fader
+				if fader_counter % fader_scale == 0:
+					# at the beginning r = 255, g = 0, b = 0 (b is still, g is fast moving)
+					if mode == 0:
+						r = round((255/2)*(1+math.cos(math.radians(degrees))))
+						g = round((255/2)*(1-math.cos(math.radians(3*degrees))))
+						if degrees%180 == 0:
+							mode = (mode+1)%3
+					# at the end r = 0, g = 255, b = 0
+
+					# at the beginning r = 0, g = 255, b = 0 (r is still, b is fast moving)
+					elif mode == 1:
+						b = round((255/2)*(1+math.cos(math.radians(degrees))))
+						g = round((255/2)*(1-math.cos(math.radians(3*degrees))))
+						if degrees%180 == 0:
+							mode = (mode+1)%3
+					# at the end r = 0, g = 0, b = 255
+
+					# at the beginning r = 0, g = 0, b = 255 (g is still, r is fast moving)
+					elif mode == 2:
+						b = round((255/2)*(1+math.cos(math.radians(degrees))))
+						r = round((255/2)*(1-math.cos(math.radians(3*degrees))))
+						if degrees%180 == 0:
+							degrees = 1
+							mode = (mode+1)%3
+					# at the end r = 255, g = 0, b = 0
+
+					led_pi.set_PWM_dutycycle(RED_PIN, r)
+					led_pi.set_PWM_dutycycle(GREEN_PIN, g)
+					led_pi.set_PWM_dutycycle(BLUE_PIN, b)
+
+					degrees = (degrees + 1)%360
+
+				fader_counter = (fader_counter + 1)%(fader_scale*256)
+
 			if self.counter != self.last_counter:
 				self.last_counter = self.counter
 				self.rotary_callback(self.counter)
