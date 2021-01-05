@@ -1,6 +1,7 @@
 # Rotary encoder class based on pigpio library
 # version: 0.2.2
 
+import math
 import pigpio
 import time
 
@@ -30,7 +31,7 @@ class Rotary:
 	long = False
 
 	def __init__(self, clk=None, dt=None, sw=None):
-		print('WARNING: using altered pigpio_encoder library.')
+		print("WARNING: using altered pigpio_encoder library.")
 		if not clk or not dt:
 			raise BaseException("CLK and DT pin must be specified!")
 		self.clk = clk
@@ -146,39 +147,39 @@ class Rotary:
 		while True:
 			if self.fader_mode:
 				# fader
-				if fader_counter % fader_scale == 0:
+				if (fader_counter % self.fader_scale) == 0:
 					# at the beginning r = 255, g = 0, b = 0 (b is still, g is fast moving)
-					if mode == 0:
-						r = round((255/2)*(1+math.cos(math.radians(degrees))))
-						g = round((255/2)*(1-math.cos(math.radians(3*degrees))))
-						if degrees%180 == 0:
-							mode = (mode+1)%3
+					if self.fader_phase == 0:
+						self.r = round((255/2)*(1+math.cos(math.radians(self.degrees))))
+						self.g = round((255/2)*(1-math.cos(math.radians(3*self.degrees))))
+						if self.degrees%180 == 0:
+							self.fader_phase = (self.fader_phase+1)%3
 					# at the end r = 0, g = 255, b = 0
 
 					# at the beginning r = 0, g = 255, b = 0 (r is still, b is fast moving)
-					elif mode == 1:
-						b = round((255/2)*(1+math.cos(math.radians(degrees))))
-						g = round((255/2)*(1-math.cos(math.radians(3*degrees))))
-						if degrees%180 == 0:
-							mode = (mode+1)%3
+					elif self.fader_phase == 1:
+						self.b = round((255/2)*(1+math.cos(math.radians(self.degrees))))
+						self.g = round((255/2)*(1-math.cos(math.radians(3*self.degrees))))
+						if self.degrees%180 == 0:
+							self.fader_phase = (self.fader_phase+1)%3
 					# at the end r = 0, g = 0, b = 255
 
 					# at the beginning r = 0, g = 0, b = 255 (g is still, r is fast moving)
-					elif mode == 2:
-						b = round((255/2)*(1+math.cos(math.radians(degrees))))
-						r = round((255/2)*(1-math.cos(math.radians(3*degrees))))
-						if degrees%180 == 0:
-							degrees = 1
-							mode = (mode+1)%3
+					elif self.fader_phase == 2:
+						self.b = round((255/2)*(1+math.cos(math.radians(self.degrees))))
+						self.r = round((255/2)*(1-math.cos(math.radians(3*self.degrees))))
+						if self.degrees%180 == 0:
+							self.degrees = 1
+							self.fader_phase = (self.fader_phase+1)%3
 					# at the end r = 255, g = 0, b = 0
 
-					led_pi.set_PWM_dutycycle(RED_PIN, r)
-					led_pi.set_PWM_dutycycle(GREEN_PIN, g)
-					led_pi.set_PWM_dutycycle(BLUE_PIN, b)
+					led_pi.set_PWM_dutycycle(RED_PIN, self.r)
+					led_pi.set_PWM_dutycycle(GREEN_PIN, self.g)
+					led_pi.set_PWM_dutycycle(BLUE_PIN, self.b)
 
-					degrees = (degrees + 1)%360
+					self.degrees = (self.degrees + 1)%360
 
-				fader_counter = (fader_counter + 1)%(fader_scale*256)
+				fader_counter = (fader_counter + 1)%(self.fader_scale*256)
 
 			if self.counter != self.last_counter:
 				self.last_counter = self.counter
