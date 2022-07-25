@@ -24,7 +24,8 @@ def main():
   degrees = 1
 
   while 1:
-    time.sleep(.12)
+    #time.sleep(.12)
+    time.sleep(.05)
 
     # at the beginning r = 255, g = 0, b = 0 (b is still, g is fast moving)
     if mode == 0:
