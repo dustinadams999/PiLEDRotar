@@ -1,3 +1,5 @@
+# rotar 2 controls green
+import os
 import pigpio
 from pigpio_encoder import pigpio_encoder
 
@@ -16,6 +18,7 @@ def main():
 def rotary_callback(counter):
   global rotary, pi
   
+  os.environ["ROTAR_2_COUNTER"] = '{}'.format(counter)
   print('rotary counter: {}'.format(counter))
 
 def sw_short_callback():
